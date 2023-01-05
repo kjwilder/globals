@@ -13,10 +13,10 @@
 
 #define _ ,
 
-GLOBAL(double, alpha1)
-GLOBAL(double, alpha2)
-GLOBAL(int, dum1)
-GLOBAL(int, dum2)
+GLOBAL(double, f)
+GLOBAL(double, g)
+GLOBAL(int, x)
+GLOBAL(int, y)
 GLOBALA(string, names, {"abc" _ "def" _ "ghi"})
 GLOBALA(int, vals, {1 _ 2 _ 3 _ 0 _ 0})
 GLOBALA(double, doubles, {})

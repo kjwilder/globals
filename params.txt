@@ -1,0 +1,5 @@
+# Updated parameters
+f=25
+# Words preceding a variable name, like 'setting' below, are ignored.
+setting names  = {jkl,  mno,pqr  }
+doubles={-2,5,1e10}

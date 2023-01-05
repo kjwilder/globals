@@ -18,7 +18,8 @@ using std::string;
 #undef GLOBALA
 #undef GLOBALI
 
-int set_parameter_file_globals(int argc, char** argv);
+int set_parameter_file_arg_globals(int argc, char** argv);
+int set_parameter_file_globals(const string&  parfile);
 void set_command_line_globals(int argc, char** argv);
 void dump_globals(const string& dumpfile);
 

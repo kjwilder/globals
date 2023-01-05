@@ -15,7 +15,7 @@ supported and provide additional features.
 - Modify your copy  of `globlist.h` to include global variable definitions as
   described in the `Examples` section below. Do not modify the other two files.
 - Include `globals.h` in any file that needs access to global variables.
-- Modify your `main` function to call `set_parameter_file_globals` and
+- Modify your `main` function to call `set_parameter_file_arg_globals` and
   `set_command_line_globals` as in this repo's `main.cc`.
 - Compile `globals.cc` with the rest of your C++ code.
 
@@ -50,31 +50,33 @@ GLOBAL(string, title, "main")
 GLOBALA(string, labels, {"x" _ "y"})
 ```
 You can create a parameter file to set new values for these variables.
-For example, create a file named `params` with the following lines:
+For example, create a file named `params.txt` with the following lines:
 ```
 # Overrides
 iterations = 100
 stepsize = 0.01
-labels = {"first", "second", "third"}
+# Do not include quotes in string assignments unless you want the string
+# to have a quote.
+labels = {first, second, third}
 ```
 Spacing is not important, and any line that begins with a '#' is a comment line
 that is ignored.  If your executable is called `myprog`, you can run it as:
 ```
-> myprog params
+> myprog params.txt
 ```
-to update global variables with values provided in `params`
+to update global variables with values provided in `params.txt`
 
 ## Usign the command line to set global variables
 Supposed your `globlist.h` is set for `myprog` as in the previous section.
 Global variables also can be specified from the command line.
 ```
->  myprog iterations=20 labels='{"a", "b", "c"}' title="a b c"
+>  myprog iterations=20 labels='{a, b, c}' title="a b c"
 ```
 One can also use both a parameter file and the command line.  The parameter
 file must be the first argument, and command line assignments will override
 parameter file assignments.
 ```
->  myprog params iterations=20
+>  myprog params.txt iterations=20
 ```
 
 ## Debugging

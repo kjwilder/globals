@@ -94,7 +94,7 @@ void set_command_line_globals(int argc, char** argv) {
 
 // __________________________________________________________________________
 
-int set_parameter_file_globals(int argc, char** argv) {
+int set_parameter_file_arg_globals(int argc, char** argv) {
   // See if a parameter file was specified as the first command line arg.
   string parfile;
   if (argc > 1 && strchr(argv[1], '=') == 0) {
@@ -102,7 +102,14 @@ int set_parameter_file_globals(int argc, char** argv) {
   } else {
     return 1;
   }
+  return set_parameter_file_globals(parfile);
+}
 
+// __________________________________________________________________________
+// This can be called at anytime to update globals using assignments
+// from a parameter file 'parfile'.
+
+int set_parameter_file_globals(const string&  parfile) {
   std::ifstream ifs(parfile);
   if (!ifs) {
     std::cerr << "Unable to open parameter file [" << parfile << "].\n";
@@ -170,6 +177,9 @@ void fill_vector(const typedesc& td, const string& val, T inst, F func) {
 // Set the global variable 'var' equal to 'val' (after casting)
 
 int set_global(const string& var, const string& val) {
+  if (var.empty()) {
+    return 1;
+  }
   int ind = 0;
   int done = 0;
   auto brace = val.find('{');
@@ -216,7 +226,8 @@ int set_global(const string& var, const string& val) {
             {
               const auto ptr = reinterpret_cast<vector<string>*>(curr.ptr);
               ptr->clear();
-              for (const auto& w : split(strip(val).substr(1, val.size() - 2))) {
+              for (const auto& w :
+                  split(strip(val).substr(1, val.size() - 2))) {
                 ptr->push_back(w);
               }
             }
