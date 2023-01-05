@@ -1,31 +1,32 @@
 # Globals
 A C++ library to create global variables and update them from the command line
-or a parameter file.
+and/or a parameter file.
 
 ## Notes
 This library works well and may be useful for users looking for an easy way to
 define global variables in a single file and conveniently update them from the
-command line or a parameter file.  However, users may want to consider packages
+command line or a parameter file.  However, users should consider packages
 such as Google's [gflags](https://github.com/gflags/gflags) that are better
 supported and provide additional features.
 
-## Getting started
-- Add the files `globlist.h`, `globals.h` and `globals.cc` to a C++ project.
-- Modify `globlist.h` to include global variable definitions as described
-  in the `Examples` section below. Do not modify the other two files.
+## Usage
+- Add the files [globlist.h](globlist.h), [globals.h](globals.h) and
+  [globals.cc](globals.cc) to a C++ project.
+- Modify your copy  of `globlist.h` to include global variable definitions as
+  described in the `Examples` section below. Do not modify the other two files.
 - Include `globals.h` in any file that needs access to global variables.
-- Modify the C++ `main` function to call `set_parameter_file_globals` and
+- Modify your `main` function to call `set_parameter_file_globals` and
   `set_command_line_globals` as in this repo's `main.cc`.
-- Compile and link `globals.cc` with the rest of your C++ code.
+- Compile `globals.cc` with the rest of your C++ code.
 
 
 ## Examples
-- Add variables with default values to `globlist.h`:
+- Add variables with default values to your copy of `globlist.h`:
   ```
   GLOBAL(int, a)
   GLOBAL(string, b)
   ```
-  The first GLOBAL creates a global variable 'a' with type 'int' equal to '0'.
+  The first GLOBAL creates a global variable `a` with type `int` equal to `0`.
 - Add variables with non-default values:
   ```
   GLOBALI(int, c, 10)
@@ -64,8 +65,8 @@ that is ignored.  If your executable is called `myprog`, you can run it as:
 to update global variables with values provided in `params`
 
 ## Usign the command line to set global variables
-Supposed `globlist.h` is set for `myprog` as in the previous section.  Global
-variables also can be specified from the command line.
+Supposed your `globlist.h` is set for `myprog` as in the previous section.
+Global variables also can be specified from the command line.
 ```
 >  myprog iterations=20 labels='{"a", "b", "c"}' title="a b c"
 ```
