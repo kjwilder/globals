@@ -1,3 +1,7 @@
+# Added
+bazel-*
+program
+
 # Prerequisites
 *.d
 
