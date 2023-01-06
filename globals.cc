@@ -12,7 +12,7 @@ using std::string;
 using std::vector;
 
 #define GLOBAL(x, y) x y;
-#define GLOBALA(x, y, z) vector<x> y(z);
+#define GLOBALA(x, y, z) vector<x> y z;
 #define GLOBALI(x, y, z) x y = z;
 #include "globals.h"
 #undef GLOBAL
