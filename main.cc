@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
   set_command_line_globals(argc, argv);
-  dump_globals("cout");  // or: dump_globals("some_file.txt");
+  dump_globals();  // or: dump_globals("some_file.txt");
   f = 50;
   std::cout << "updated f + g = " << f + g << "\n";
 }

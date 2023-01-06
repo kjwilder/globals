@@ -241,22 +241,18 @@ int set_parameter_file_globals(const string&  parfile) {
 }
 
 // __________________________________________________________________________
-// Print out all global variables to cout or a file.
+// Print out all global variables to stdout or a file.
 
 void dump_globals(const string& dump_file) {
-  if (dump_file.empty()) {
-    return;
-  }
-
   std::ofstream ofs;
-  if (dump_file != "cout") {
+  if (!dump_file.empty()) {
     ofs.open(dump_file);
     if (!ofs) {
       cerr << "Unable to open dump_file [" << dump_file << "].\n";
       return;
     }
   }
-  std::ostream& os = (dump_file == "cout") ? std::cout : ofs;
+  std::ostream& os = dump_file.empty() ? std::cout : ofs;
 
   for (const auto& vl : varmap) {
     os << vl.first << " = ";
