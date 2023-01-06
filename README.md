@@ -12,16 +12,18 @@ supported and provide additional features.
 ## Usage
 - Add the files [globlist.h](globlist.h), [globals.h](globals.h) and
   [globals.cc](globals.cc) to a C++ project.
-- Modify your copy  of `globlist.h` to include global variable definitions as
-  described in the `Examples` section below. Do not modify the other two files.
-- Include `globals.h` in any file that needs access to global variables.
+- Modify your copy  of [globlist.h](globlist.h) to include global variable
+  definitions as described in the `Examples` section below. Do not modify the
+  other two files.
+- Include [globals.h](globals.h) in any source file that needs access to global
+  variables.
 - Modify your `main` function to call `set_parameter_file_arg_globals` and
   `set_command_line_globals` as in this repo's `main.cc`.
-- Compile `globals.cc` with the rest of your C++ code.
+- Compile [globals.cc](globals.cc) with the rest of your C++ code.
 
 
 ## Examples
-- Add variables with default values to your copy of `globlist.h`:
+- Add variables with default values to your copy of [globlist.h](globlist.h):
   ```
   GLOBAL(int, a)
   GLOBAL(string, b)
@@ -42,7 +44,8 @@ supported and provide additional features.
   The array initializer argument must be surrounded by parentheses.
   
 ## Using parameter files to set global variables
-Suppose your `globlist.h` contains the following variable definitions:
+Suppose your [globlist.h](globlist.h) contains the following variable
+definitions:
 ```
 GLOBAL(int, iterations)
 GLOBAL(double, stepsize, 0.1)
@@ -67,8 +70,8 @@ that is ignored.  If your executable is called `myprog`, you can run it as:
 to update global variables with values provided in `params.txt`
 
 ## Usign the command line to set global variables
-Supposed your `globlist.h` is set for `myprog` as in the previous section.
-Global variables also can be specified from the command line.
+Supposed your [globlist.h](globlist.h) is set for `myprog` as in the previous
+section.  Global variables also can be specified from the command line.
 ```
 >  myprog iterations=20 labels='{a, b, c}' title="a b c"
 ```
@@ -81,6 +84,6 @@ parameter file assignments.
 
 ## Debugging
 There is a convenience function `dump_globals` that can print all the global
-variables defined in `globlist.h` with their current values. It takes one
-argument that can be a filename or have the special value "cout" in which
-case the values are printed to cout (usually the terminal).
+variables defined in [globlist.h](globlist.h) with their current values. It
+takes one argument that can be a filename or have the special value "cout" in
+which case the values are printed to cout (usually the terminal).
