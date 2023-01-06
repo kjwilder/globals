@@ -6,13 +6,16 @@
 
 using std::string;
 
-#ifndef GLOBALS_C_
+// Define and initialize global variables when included from globals.cc
+// and otherwise just declare them.
+#ifdef GLOBALS_C_
+  #define GLOBAL(x, y, z) x y = z;
+  #define GLOBALV(x, y, z) vector<x> y z;
+#else
   #define GLOBAL(x, y, z) extern x y;
   #define GLOBALV(x, y, z) extern std::vector<x> y;
 #endif
-
 #include "globlist.h"
-
 #undef GLOBAL
 #undef GLOBALV
 
@@ -22,4 +25,3 @@ void set_command_line_globals(int argc, char** argv);
 void dump_globals(const string& dumpfile);
 
 #endif  // GLOBALS_H_
-

@@ -1,6 +1,6 @@
 // Global variable definitions.
 GLOBAL(double, f, 0)
-GLOBAL(double, g, 0)
+GLOBAL(double, g, 10)
 GLOBAL(int, x, 5)
 GLOBAL(int, y, 10)
 GLOBAL(string, s, "")
