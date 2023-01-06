@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 using std::cerr;
@@ -18,15 +19,14 @@ using std::vector;
 
 enum Types { intvar, longvar, doublevar, stringvar };
 
-struct typedesc { string name; void *ptr; Types type; bool is_vector;};
+struct typedesc { void *ptr; Types type; bool is_vector;};
 
-typedesc varlist[] = {
-#define GLOBAL(x, y, z) { #y, &y, x##var, false},
-#define GLOBALV(x, y, z) { #y, &y, x##var, true },
+std::unordered_map<string, typedesc> varmap = {
+#define GLOBAL(x, y, z) {#y, {&y, x##var, false}},
+#define GLOBALV(x, y, z) {#y, {&y, x##var, true}},
 #include "globlist.h"
 #undef GLOBAL
 #undef GLOBALV
-  { "", 0, intvar }  // dummy to make sure list is terminated correctly.
 };
 
 // __________________________________________________________________________
@@ -117,70 +117,50 @@ void fill_vector(const typedesc& td, const string& val, T inst, F func) {
 // Set the global variable 'var' equal to 'val' (after casting)
 
 int set_global(const string& var, const string& val) {
-  if (var.empty()) {
+  if (varmap.find(var) == varmap.end()) {
+    cerr << "Unable to determine type of variable [" << var << "].\n";
     return 1;
   }
-  int ind = 0;
-  int done = 0;
-  auto brace = val.find('{');
-  if (brace == string::npos) {
-    while (!done) {
-      const auto& curr = varlist[ind];
-      if (var == curr.name) {
-        switch (curr.type) {
-          case (intvar):
-            fill_value(curr, val, int(), atoi);
-            break;
-          case (longvar):
-            fill_value(curr, val, int64_t(), atol);
-            break;
-          case (doublevar):
-            fill_value(curr, val, double(), atof);
-            break;
-          case (stringvar):
-            *static_cast<string*>(curr.ptr) = val;
-            break;
-          default:
-            cerr << "Unable to determine type of [" << var << "].\n";
-            break;
-        }
-        return 1;
-      }
-      done = (varlist[++ind].ptr == 0);
+  if (!varmap[var].is_vector) {
+    switch (varmap[var].type) {
+      case (intvar):
+        fill_value(varmap[var], val, int(), atoi);
+        break;
+      case (longvar):
+        fill_value(varmap[var], val, int64_t(), atol);
+        break;
+      case (doublevar):
+        fill_value(varmap[var], val, double(), atof);
+        break;
+      case (stringvar):
+        *static_cast<string*>(varmap[var].ptr) = val;
+        break;
     }
+    return 1;
   } else {
-    while (!done) {
-      const auto& curr = varlist[ind];
-      if (var == curr.name) {
-        switch (curr.type) {
-          case (intvar):
-            fill_vector(curr, val, int(), atoi);
-            break;
-          case (longvar):
-            fill_vector(curr, val, int64_t(), atol);
-            break;
-          case (doublevar):
-            fill_vector(curr, val, double(), atof);
-            break;
-          case (stringvar):
-            {
-              const auto ptr = static_cast<vector<string>*>(curr.ptr);
-              ptr->clear();
-              for (const auto& w :
-                  split(strip(val).substr(1, val.size() - 2))) {
-                ptr->push_back(w);
-              }
-            }
-            // fill_vector(curr, val, string(), std::identity);
-            break;
-          default:
-            cerr << "Unable to determine type of variable [" << var << "].\n";
-            break;
+    switch (varmap[var].type) {
+      case (intvar):
+        fill_vector(varmap[var], val, int(), atoi);
+        break;
+      case (longvar):
+        fill_vector(varmap[var], val, int64_t(), atol);
+        break;
+      case (doublevar):
+        fill_vector(varmap[var], val, double(), atof);
+        break;
+      case (stringvar):
+        {
+          const auto ptr = static_cast<vector<string>*>(varmap[var].ptr);
+          ptr->clear();
+          for (const auto& w :
+              split(strip(val).substr(1, val.size() - 2))) {
+            ptr->push_back(w);
+          }
         }
-        return 1;
-      }
-      done = (varlist[++ind].ptr == 0);
+        // fill_vector(varmap[var], val, string(), std::identity);
+        break;
     }
+    return 1;
   }
   return 0;
 }
@@ -282,40 +262,40 @@ void dump_globals(const string& dump_file) {
   }
   std::ostream& os = (dump_file == "cout") ? std::cout : ofs;
 
-  for (const auto& vl : varlist) {
-    if (!vl.ptr) {
+  for (const auto& vl : varmap) {
+    if (!vl.second.ptr) {
       continue;
     }
-    os << vl.name << " = ";
-    if (vl.is_vector) {
-      switch (vl.type) {
+    os << vl.first << " = ";
+    if (vl.second.is_vector) {
+      switch (vl.second.type) {
         case (intvar):
-          print_vector(os, vl, int());
+          print_vector(os, vl.second, int());
           break;
         case (longvar):
-          print_vector(os, vl, int64_t());
+          print_vector(os, vl.second, int64_t());
           break;
         case (doublevar):
-          print_vector(os, vl, double());
+          print_vector(os, vl.second, double());
           break;
         case (stringvar):
-          print_vector(os, vl, string());
+          print_vector(os, vl.second, string());
           break;
       }
     } else {
-      switch (vl.type) {
+      switch (vl.second.type) {
         case (intvar):
-          print_value(os, vl, int());
+          print_value(os, vl.second, int());
           break;
         case (longvar):
-          print_value(os, vl, int64_t());
+          print_value(os, vl.second, int64_t());
           break;
         case (doublevar):
-          print_value(os, vl, double());
+          print_value(os, vl.second, double());
           break;
         case (stringvar):
           os << "\"";
-          print_value(os, vl, string());
+          print_value(os, vl.second, string());
           os << "\"";
           break;
       }
