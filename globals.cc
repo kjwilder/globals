@@ -8,7 +8,6 @@
 #include <vector>
 
 using std::cerr;
-using std::endl;
 using std::string;
 using std::vector;
 
@@ -79,14 +78,13 @@ void fill_value(const vardescriptor& td, const string& val, T inst, F func) {
 // __________________________________________________________________________
 
 template<class T>
-void print_vector_value(std::ostream& os, T val, Types t) {
-  if (t == stringvar) {
-    os << "\"";
-  }
+void print_vector_value(std::ostream& os, const T& val, Types t) {
   os << val;
-  if (t == stringvar) {
-    os << "\"";
-  }
+}
+
+template<>
+void print_vector_value<string>(std::ostream& os, const string& val, Types t) {
+    os << "\"" << val << "\"";
 }
 
 template<class T>
@@ -119,7 +117,7 @@ void fill_vector(const vardescriptor& td, const string& val, T inst, F func) {
 int set_global(const string& var, const string& val) {
   if (varmap.find(var) == varmap.end()) {
     cerr << "Unable to determine type of variable [" << var << "].\n";
-    return 1;
+    return 0;
   }
   if (!varmap[var].is_vector) {
     switch (varmap[var].type) {
@@ -136,7 +134,6 @@ int set_global(const string& var, const string& val) {
         *static_cast<string*>(varmap[var].ptr) = val;
         break;
     }
-    return 1;
   } else {
     switch (varmap[var].type) {
       case (intvar):
@@ -160,9 +157,8 @@ int set_global(const string& var, const string& val) {
         // fill_vector(varmap[var], val, string(), std::identity);
         break;
     }
-    return 1;
   }
-  return 0;
+  return 1;
 }
 
 // __________________________________________________________________________
@@ -204,7 +200,7 @@ void set_command_line_globals(int argc, char** argv) {
     string var, val;
     parse_equation(argv[count++], &var, &val);
     if (!set_global(var, val)) {
-      cerr << "Unknown variable [" << var << "] on command line." << endl;
+      cerr << "Unknown variable [" << var << "] on command line.\n";
     }
   }
 }
@@ -238,7 +234,7 @@ int set_parameter_file_globals(const string&  parfile) {
     parse_equation(buf, &var, &val);
     if (!set_global(var, val)) {
       // Warn but don't fail on unknown variables.
-      cerr << "Unknown variable [" << var << "] in parameter file." << endl;
+      cerr << "Unknown variable [" << var << "] in parameter file.\n";
     }
   }
   return 1;
@@ -256,7 +252,7 @@ void dump_globals(const string& dump_file) {
   if (dump_file != "cout") {
     ofs.open(dump_file);
     if (!ofs) {
-      cerr << "Unable to open dump_file [" << dump_file << "]\n";
+      cerr << "Unable to open dump_file [" << dump_file << "].\n";
       return;
     }
   }
@@ -297,6 +293,6 @@ void dump_globals(const string& dump_file) {
           break;
       }
     }
-    os << endl;
+    os << "\n";
   }
 }
