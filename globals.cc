@@ -11,13 +11,12 @@ using std::endl;
 using std::string;
 using std::vector;
 
-#define GLOBAL(x, y) x y;
-#define GLOBALA(x, y, z) vector<x> y z;
-#define GLOBALI(x, y, z) x y = z;
+// Define and initialize global variables.
+#define GLOBAL(x, y, z) x y = z;
+#define GLOBALV(x, y, z) vector<x> y z;
 #include "globals.h"
 #undef GLOBAL
-#undef GLOBALI
-#undef GLOBALA
+#undef GLOBALV
 
 int set_global(const string& var, const string& val);
 void parse_equation(const string& eqn, string* var, string* val);
@@ -30,13 +29,11 @@ enum Types { intvar, longvar, doublevar, stringvar };
 struct typedesc { string name; void *ptr; Types type; };
 
 typedesc varlist[] = {
-#define GLOBAL(x, y) { #y, &y, x##var },
-#define GLOBALI(x, y, z) { #y, &y, x##var },
-#define GLOBALA(x, y, z) { #y, &y, x##var },
+#define GLOBAL(x, y, z) { #y, &y, x##var },
+#define GLOBALV(x, y, z) { #y, &y, x##var },
 #include "globlist.h"
 #undef GLOBAL
-#undef GLOBALI
-#undef GLOBALA
+#undef GLOBALV
   { "", 0, intvar }  // dummy to make sure list is terminated correctly.
 };
 
@@ -158,7 +155,7 @@ void parse_equation(const string& eqn, string* var, string* val) {
 
 template<class T, class F>
 void fill_value(const typedesc& td, const string& val, T inst, F func) {
-  *reinterpret_cast<T*>(td.ptr) = func(val.c_str());
+  *static_cast<T*>(td.ptr) = func(val.c_str());
 }
 
 // __________________________________________________________________________
@@ -166,7 +163,7 @@ void fill_value(const typedesc& td, const string& val, T inst, F func) {
 template<class T, class F>
 void fill_vector(const typedesc& td, const string& val, T inst, F func) {
   const vector<string> values = split(strip(val).substr(1, val.size() - 2));
-  vector<T>* ptr = reinterpret_cast<vector<T>*>(td.ptr);
+  vector<T>* ptr = static_cast<vector<T>*>(td.ptr);
   ptr->resize(values.size());
   for (int i = 0; i < values.size(); ++i) {
     (*ptr)[i] = func(values[i].c_str());
@@ -198,7 +195,7 @@ int set_global(const string& var, const string& val) {
             fill_value(curr, val, double(), atof);
             break;
           case (stringvar):
-            *reinterpret_cast<string*>(curr.ptr) = val;
+            *static_cast<string*>(curr.ptr) = val;
             break;
           default:
             cerr << "Unable to determine type of [" << var << "].\n";
@@ -224,7 +221,7 @@ int set_global(const string& var, const string& val) {
             break;
           case (stringvar):
             {
-              const auto ptr = reinterpret_cast<vector<string>*>(curr.ptr);
+              const auto ptr = static_cast<vector<string>*>(curr.ptr);
               ptr->clear();
               for (const auto& w :
                   split(strip(val).substr(1, val.size() - 2))) {
@@ -264,14 +261,12 @@ void dump_globals(const string& dump_file) {
   std::ostream& os = (dump_file == "cout") ? std::cout : ofs;
 
   int i, ind = 0;
-#define GLOBAL(x, y) { os << #y << " = [" << y << "]\n"; ind++; }
-#define GLOBALI(x, y, z) { os << #y << " = [" << y << "]\n"; ind++; }
-#define GLOBALA(x, y, z) \
+#define GLOBAL(x, y, z) { os << #y << " = [" << y << "]\n"; ind++; }
+#define GLOBALV(x, y, z) \
   { auto ys = static_cast<int>(y.size()); os << #y << " = {"; \
     for (i = 0; i < ys - 1; ++i) { os << y[i] << ", "; } \
     if (ys > 0) { os << y[ys - 1]; } os << "}\n"; ind++; }
 #include "globlist.h"
 #undef GLOBAL
-#undef GLOBALI
-#undef GLOBALA
+#undef GLOBALV
 }

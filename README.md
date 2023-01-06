@@ -23,22 +23,17 @@ supported and provide additional features.
 
 
 ## Examples
-- Add variables with default values to your copy of [globlist.h](globlist.h):
+- Add global variables to [globlist.h](globlist.h):
   ```
-  GLOBAL(int, a)
-  GLOBAL(string, b)
+  GLOBAL(int, a, 0)
+  GLOBAL(string, b, "")
   ```
   The first GLOBAL creates a global variable `a` with type `int` equal to `0`.
-- Add variables with non-default values:
+- Add global vectors:
   ```
-  GLOBALI(int, c, 10)
-  GLOBALI(string, d, "myvalue")
-  ```
-- Add vectors:
-  ```
-  GLOBALA(int, x, ({5, 6, 7, 8}))
-  GLOBALA(string, y, ({"str1", "str2", "str3"}))
-  GLOBALA(double, z, ({}))
+  GLOBALV(int, x, ({5, 6, 7, 8}))
+  GLOBALV(string, y, ({"str1", "str2", "str3"}))
+  GLOBALV(double, z, ({}))
   ```
   The first example creates a vector named 'x' with entries 5, 6, 7 and 8.
   The array initializer argument must be surrounded by parentheses.
@@ -47,10 +42,10 @@ supported and provide additional features.
 Suppose your [globlist.h](globlist.h) contains the following variable
 definitions:
 ```
-GLOBAL(int, iterations)
+GLOBAL(int, iterations,  100)
 GLOBAL(double, stepsize, 0.1)
 GLOBAL(string, title, "main")
-GLOBALA(string, labels, ({"x", "y"}))
+GLOBALV(string, labels, ({"x", "y"}))
 ```
 You can create a parameter file to set new values for these variables.
 For example, create a file named `params.txt` with the following lines:

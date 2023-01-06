@@ -7,16 +7,14 @@
 using std::string;
 
 #ifndef GLOBALS_C_
-  #define GLOBAL(x, y) extern x y;
-  #define GLOBALA(x, y, z) extern std::vector<x> y;
-  #define GLOBALI(x, y, z) extern x y;
+  #define GLOBAL(x, y, z) extern x y;
+  #define GLOBALV(x, y, z) extern std::vector<x> y;
 #endif
 
 #include "globlist.h"
 
 #undef GLOBAL
-#undef GLOBALA
-#undef GLOBALI
+#undef GLOBALV
 
 int set_parameter_file_arg_globals(int argc, char** argv);
 int set_parameter_file_globals(const string&  parfile);
