@@ -34,12 +34,12 @@ supported and provide additional features.
   ```
 - Add vectors:
   ```
-  GLOBALA(int, x, {5 _ 6 _ 7 _ 8})
-  GLOBALA(string, y, {"str1" _ "str2" _ "str3"})
-  GLOBALA(double, z, {})
+  GLOBALA(int, x, ({5, 6, 7, 8}))
+  GLOBALA(string, y, ({"str1", "str2", "str3"}))
+  GLOBALA(double, z, ({}))
   ```
   The first example creates a vector named 'x' with entries 5, 6, 7 and 8.
-  Underscores must be used as separators instead of commas in `globlist.h`.
+  The array initializer argument must be surrounded by parentheses.
   
 ## Using parameter files to set global variables
 Suppose your `globlist.h` contains the following variable definitions:
@@ -47,7 +47,7 @@ Suppose your `globlist.h` contains the following variable definitions:
 GLOBAL(int, iterations)
 GLOBAL(double, stepsize, 0.1)
 GLOBAL(string, title, "main")
-GLOBALA(string, labels, {"x" _ "y"})
+GLOBALA(string, labels, ({"x", "y"}))
 ```
 You can create a parameter file to set new values for these variables.
 For example, create a file named `params.txt` with the following lines:
