@@ -19,9 +19,9 @@ using std::vector;
 
 enum Types { intvar, longvar, doublevar, stringvar };
 
-struct typedesc { void *ptr; Types type; bool is_vector;};
+struct vardescriptor { void *ptr; Types type; bool is_vector;};
 
-std::unordered_map<string, typedesc> varmap = {
+std::unordered_map<string, vardescriptor> varmap = {
 #define GLOBAL(x, y, z) {#y, {&y, x##var, false}},
 #define GLOBALV(x, y, z) {#y, {&y, x##var, true}},
 #include "globlist.h"
@@ -67,12 +67,12 @@ vector<string> split(const string& text) {
 // __________________________________________________________________________
 
 template<class T>
-void print_value(std::ostream& os, const typedesc& td, T inst) {
+void print_value(std::ostream& os, const vardescriptor& td, T inst) {
   os << *static_cast<T*>(td.ptr);
 }
 
 template<class T, class F>
-void fill_value(const typedesc& td, const string& val, T inst, F func) {
+void fill_value(const vardescriptor& td, const string& val, T inst, F func) {
   *static_cast<T*>(td.ptr) = func(val.c_str());
 }
 
@@ -90,7 +90,7 @@ void print_vector_value(std::ostream& os, T val, Types t) {
 }
 
 template<class T>
-void print_vector(std::ostream& os, const typedesc& td, T inst) {
+void print_vector(std::ostream& os, const vardescriptor& td, T inst) {
   const vector<T>& vec = *static_cast<vector<T>*>(td.ptr);
   os << "{";
   if (vec.size() > 0) {
@@ -104,7 +104,7 @@ void print_vector(std::ostream& os, const typedesc& td, T inst) {
 }
 
 template<class T, class F>
-void fill_vector(const typedesc& td, const string& val, T inst, F func) {
+void fill_vector(const vardescriptor& td, const string& val, T inst, F func) {
   const vector<string> values = split(strip(val).substr(1, val.size() - 2));
   vector<T>* ptr = static_cast<vector<T>*>(td.ptr);
   ptr->resize(values.size());
@@ -263,9 +263,6 @@ void dump_globals(const string& dump_file) {
   std::ostream& os = (dump_file == "cout") ? std::cout : ofs;
 
   for (const auto& vl : varmap) {
-    if (!vl.second.ptr) {
-      continue;
-    }
     os << vl.first << " = ";
     if (vl.second.is_vector) {
       switch (vl.second.type) {
