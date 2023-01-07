@@ -80,5 +80,5 @@ parameter file assignments.
 ## Debugging
 There is a convenience function `dump_globals` that can print all the global
 variables defined in [globlist.h](globlist.h) with their current values. It
-takes one argument that can be a filename or have the special value "cout" in
-which case the values are printed to cout (usually the terminal).
+takes one argument that can be a filename or be left empty in which case the
+output will be displayed on the terminal.
