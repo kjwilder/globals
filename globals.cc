@@ -254,7 +254,6 @@ void dump_globals(const string& dump_file) {
   }
   std::ostream& os = dump_file.empty() ? std::cout : ofs;
 
-
   for (const auto& vl : varmap) {
     os << vl.first << " = ";
     if (vl.second.is_vector) {

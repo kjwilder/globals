@@ -22,6 +22,6 @@ using std::string;
 int set_parameter_file_arg_globals(int argc, char** argv);
 int set_parameter_file_globals(const string&  parfile);
 void set_command_line_globals(int argc, char** argv);
-void dump_globals(const string& dump_file="");
+void dump_globals(const string& dump_file = "");
 
 #endif  // GLOBALS_H_
