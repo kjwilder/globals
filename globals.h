@@ -19,6 +19,7 @@ using std::string;
 #undef GLOBAL
 #undef GLOBALV
 
+int set_global(const string& var, const string& val);
 int set_parameter_file_arg_globals(int argc, char** argv);
 int set_parameter_file_globals(const string&  parfile);
 void set_command_line_globals(int argc, char** argv);

@@ -3,9 +3,15 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <stdexcept>
+#include <cerrno>
+#include <cstring>
+#include <climits>
+#include <utility>
 
 using std::cerr;
 using std::string;
@@ -29,6 +35,51 @@ std::unordered_map<string, vardescriptor> varmap = {
 };
 
 // __________________________________________________________________________
+// Safe type conversion functions with error handling.
+
+static int safe_atoi(const char* str) {
+  errno = 0;
+  char* endptr = nullptr;
+  long val = std::strtol(str, &endptr, 10);
+
+  if (errno == ERANGE || val > INT32_MAX || val < INT32_MIN) {
+    throw std::out_of_range("Integer value out of range");
+  }
+  if (endptr == str || *endptr != '\0') {
+    throw std::invalid_argument("Invalid integer format");
+  }
+  return static_cast<int>(val);
+}
+
+static long safe_atol(const char* str) {
+  errno = 0;
+  char* endptr = nullptr;
+  long val = std::strtol(str, &endptr, 10);
+
+  if (errno == ERANGE) {
+    throw std::out_of_range("Long value out of range");
+  }
+  if (endptr == str || *endptr != '\0') {
+    throw std::invalid_argument("Invalid long format");
+  }
+  return val;
+}
+
+static double safe_atof(const char* str) {
+  errno = 0;
+  char* endptr = nullptr;
+  double val = std::strtod(str, &endptr);
+
+  if (errno == ERANGE) {
+    throw std::out_of_range("Double value out of range");
+  }
+  if (endptr == str || *endptr != '\0') {
+    throw std::invalid_argument("Invalid double format");
+  }
+  return val;
+}
+
+// __________________________________________________________________________
 
 static string strip(const string& s) {
   string stripped;
@@ -50,16 +101,19 @@ vector<string> split(const string& text) {
     return splits;
   }
   std::size_t start = 0;
-  std::size_t end = text.find(',', start + 1);
+  std::size_t end = text.find(',', start);
   while (end != string::npos) {
     auto token = strip(text.substr(start, end - start));
     if (!token.empty()) {
       splits.push_back(token);
     }
     start = end + 1;
-    end = text.find(',', start + 1);
+    end = text.find(',', start);
   }
-  splits.push_back(strip(text.substr(start)));
+  auto last_token = strip(text.substr(start));
+  if (!last_token.empty()) {
+    splits.push_back(last_token);
+  }
   return splits;
 }
 
@@ -72,7 +126,12 @@ void print_value(std::ostream& os, const vardescriptor& td, T inst) {
 
 template<class T, class F>
 void fill_value(const vardescriptor& td, const string& val, T inst, F func) {
-  *static_cast<T*>(td.ptr) = func(val.c_str());
+  try {
+    *static_cast<T*>(td.ptr) = func(val.c_str());
+  } catch (const std::exception& e) {
+    cerr << "Error converting value '" << val << "': " << e.what() << "\n";
+    throw;
+  }
 }
 
 // __________________________________________________________________________
@@ -92,7 +151,7 @@ void print_vector(std::ostream& os, const vardescriptor& td, T inst) {
   const vector<T>& vec = *static_cast<vector<T>*>(td.ptr);
   os << "{";
   if (vec.size() > 0) {
-    for (int i = 0; i < vec.size() - 1; ++i) {
+    for (size_t i = 0; i < vec.size() - 1; ++i) {
       print_vector_value(os, vec[i], td.type);
       os << ", ";
     }
@@ -103,12 +162,34 @@ void print_vector(std::ostream& os, const vardescriptor& td, T inst) {
 
 template<class T, class F>
 void fill_vector(const vardescriptor& td, const string& val, T inst, F func) {
-  const vector<string> values = split(strip(val).substr(1, val.size() - 2));
-  vector<T>* ptr = static_cast<vector<T>*>(td.ptr);
-  ptr->resize(values.size());
-  for (int i = 0; i < values.size(); ++i) {
-    (*ptr)[i] = func(values[i].c_str());
+  string stripped = strip(val);
+
+  // Check for braces and extract content
+  if (stripped.size() < 2 || stripped[0] != '{' ||
+      stripped[stripped.size() - 1] != '}') {
+    cerr << "Vector value must be enclosed in braces: " << val << "\n";
+    throw std::invalid_argument("Vector value must be enclosed in braces");
   }
+
+  string content = stripped.substr(1, stripped.size() - 2);
+  const vector<string> values = split(content);
+
+  // Convert all values to a temporary vector first to avoid partial updates
+  vector<T> temp_vec;
+  temp_vec.reserve(values.size());
+
+  try {
+    for (size_t i = 0; i < values.size(); ++i) {
+      temp_vec.push_back(func(values[i].c_str()));
+    }
+  } catch (const std::exception& e) {
+    cerr << "Error converting vector element: " << e.what() << "\n";
+    throw;
+  }
+
+  // Only update the actual vector if all conversions succeeded
+  vector<T>* ptr = static_cast<vector<T>*>(td.ptr);
+  *ptr = std::move(temp_vec);
 }
 
 // __________________________________________________________________________
@@ -119,44 +200,55 @@ int set_global(const string& var, const string& val) {
     cerr << "Unable to determine type of variable [" << var << "].\n";
     return 0;
   }
-  if (!varmap[var].is_vector) {
-    switch (varmap[var].type) {
-      case (intvar):
-        fill_value(varmap[var], val, int(), atoi);
-        break;
-      case (longvar):
-        fill_value(varmap[var], val, int64_t(), atol);
-        break;
-      case (doublevar):
-        fill_value(varmap[var], val, double(), atof);
-        break;
-      case (stringvar):
-        *static_cast<string*>(varmap[var].ptr) = val;
-        break;
-    }
-  } else {
-    switch (varmap[var].type) {
-      case (intvar):
-        fill_vector(varmap[var], val, int(), atoi);
-        break;
-      case (longvar):
-        fill_vector(varmap[var], val, int64_t(), atol);
-        break;
-      case (doublevar):
-        fill_vector(varmap[var], val, double(), atof);
-        break;
-      case (stringvar):
-        {
-          const auto ptr = static_cast<vector<string>*>(varmap[var].ptr);
-          ptr->clear();
-          for (const auto& w :
-              split(strip(val).substr(1, val.size() - 2))) {
-            ptr->push_back(w);
+
+  try {
+    if (!varmap[var].is_vector) {
+      switch (varmap[var].type) {
+        case (intvar):
+          fill_value(varmap[var], val, int(), safe_atoi);
+          break;
+        case (longvar):
+          fill_value(varmap[var], val, int64_t(), safe_atol);
+          break;
+        case (doublevar):
+          fill_value(varmap[var], val, double(), safe_atof);
+          break;
+        case (stringvar):
+          *static_cast<string*>(varmap[var].ptr) = val;
+          break;
+      }
+    } else {
+      switch (varmap[var].type) {
+        case (intvar):
+          fill_vector(varmap[var], val, int(), safe_atoi);
+          break;
+        case (longvar):
+          fill_vector(varmap[var], val, int64_t(), safe_atol);
+          break;
+        case (doublevar):
+          fill_vector(varmap[var], val, double(), safe_atof);
+          break;
+        case (stringvar):
+          {
+            string stripped = strip(val);
+            if (stripped.size() < 2 || stripped[0] != '{' ||
+                stripped[stripped.size() - 1] != '}') {
+              cerr << "Vector value must be enclosed in braces: " << val << "\n";
+              throw std::invalid_argument("Vector value must be enclosed in braces");
+            }
+            string content = stripped.substr(1, stripped.size() - 2);
+            const auto ptr = static_cast<vector<string>*>(varmap[var].ptr);
+            ptr->clear();
+            for (const auto& w : split(content)) {
+              ptr->push_back(w);
+            }
           }
-        }
-        // fill_vector(varmap[var], val, string(), std::identity);
-        break;
+          break;
+      }
     }
+  } catch (const std::exception& e) {
+    cerr << "Error setting variable [" << var << "]: " << e.what() << "\n";
+    return 0;
   }
   return 1;
 }
@@ -177,7 +269,10 @@ void parse_equation(const string& eqn, string* var, string* val) {
   *var = strip(eqn.substr(0, eq_pos));
   *val = strip(eqn.substr(eq_pos + 1, eqn.size() - eq_pos));
 
-  if ((*var)[0] == '#') {  // Ignore comments.
+  // Check for empty var or comments
+  if (var->empty() || (*var)[0] == '#') {
+    var->clear();
+    val->clear();
     return;
   }
 
@@ -199,7 +294,7 @@ void set_command_line_globals(int argc, char** argv) {
   while (count < argc) {
     string var, val;
     parse_equation(argv[count++], &var, &val);
-    if (!set_global(var, val)) {
+    if (!var.empty() && !set_global(var, val)) {
       cerr << "Unknown variable [" << var << "] on command line.\n";
     }
   }
@@ -232,7 +327,7 @@ int set_parameter_file_globals(const string&  parfile) {
   string buf, var, val;
   while (std::getline(ifs, buf)) {
     parse_equation(buf, &var, &val);
-    if (!set_global(var, val)) {
+    if (!var.empty() && !set_global(var, val)) {
       // Warn but don't fail on unknown variables.
       cerr << "Unknown variable [" << var << "] in parameter file.\n";
     }

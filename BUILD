@@ -6,6 +6,18 @@ cc_binary(
 
 cc_library(
   name = "globals",
-  hdrs = ["globals.h", "globals.cc"],
+  hdrs = ["globals.h"],
+  srcs = ["globals.cc"],
   includes = ["globlist.h"],
+)
+
+cc_test(
+  name = "globals_test",
+  srcs = ["globals_test.cc"],
+  deps = [
+    ":globals",
+    "@googletest//:gtest",
+    "@googletest//:gtest_main",
+  ],
+  copts = ["-std=c++11"],
 )

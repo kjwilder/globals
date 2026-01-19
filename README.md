@@ -64,7 +64,7 @@ that is ignored.  If your executable is called `myprog`, you can run it as:
 ```
 to update global variables with values provided in `params.txt`
 
-## Usign the command line to set global variables
+## Using the command line to set global variables
 Supposed your [globlist.h](globlist.h) is set for `myprog` as in the previous
 section.  Global variables also can be specified from the command line.
 ```
