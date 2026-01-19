@@ -131,9 +131,11 @@ g++ -Wall -std=c++11 globals.cc simple_test.cc -o simple_test
 ./simple_test
 ```
 
-**Run Google Test suite (requires Bazel with Google Test):**
+**Run Google Test suite (requires Bazel with Google Test, C++14 or higher):**
 ```bash
 bazel test //:globals_test
+# Or to see test output:
+bazel test --test_output=all //:globals_test
 ```
 
 The test suite includes 29 tests with 67 assertions covering:

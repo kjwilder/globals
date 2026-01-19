@@ -2,6 +2,7 @@ cc_binary(
   name = "program",
   srcs = ["globlist.h", "main.cc", "globals.cc"],
   deps = [":globals"],
+  copts = ["-std=c++14"],
 )
 
 cc_library(
@@ -9,6 +10,7 @@ cc_library(
   hdrs = ["globals.h"],
   srcs = ["globals.cc"],
   includes = ["globlist.h"],
+  copts = ["-std=c++14"],
 )
 
 cc_test(
@@ -19,5 +21,5 @@ cc_test(
     "@googletest//:gtest",
     "@googletest//:gtest_main",
   ],
-  copts = ["-std=c++11"],
+  copts = ["-std=c++14"],
 )
