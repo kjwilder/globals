@@ -9,6 +9,28 @@ command line or a parameter file.  However, users should consider packages
 such as Google's [gflags](https://github.com/gflags/gflags) that are better
 supported and provide additional features.
 
+## Recent Improvements
+
+Recent updates have significantly improved the library's robustness and reliability:
+
+**Bug Fixes:**
+- Safe type conversions with proper error handling (no more silent failures on invalid input)
+- Fixed buffer overflow in vector parsing when input is malformed
+- Fixed integer overflow detection for values exceeding int32 range
+- Fixed atomic vector updates (partial updates no longer occur on conversion errors)
+- Improved empty line and comment handling in parameter files
+
+**Error Handling:**
+- Invalid numeric values (e.g., `"abc"` for an integer) now properly fail with clear error messages
+- Partially valid numbers (e.g., `"123abc"`) are rejected instead of silently truncated
+- Vector values must be enclosed in braces `{...}` or an error will be reported
+- All conversion errors include context about which variable and value failed
+
+**Testing:**
+- Comprehensive test suite with 29 tests covering all major functionality
+- Tests verify scalar and vector operations, error handling, and edge cases
+- Run tests with: `./simple_test` (standalone) or `bazel test //:globals_test` (Google Test)
+
 ## Usage
 - Add the files [globlist.h](globlist.h), [globals.h](globals.h) and
   [globals.cc](globals.cc) to a C++ project.
@@ -82,3 +104,62 @@ There is a convenience function `dump_globals` that can print all the global
 variables defined in [globlist.h](globlist.h) with their current values. It
 takes one argument that can be a filename or be left empty in which case the
 output will be displayed on the terminal.
+
+## Building
+
+The library can be built using either Make or Bazel:
+
+**Using Make:**
+```bash
+make program
+./program [params.txt] [var=value ...]
+```
+
+**Using Bazel:**
+```bash
+bazel build //:program
+bazel run //:program -- [params.txt] [var=value ...]
+```
+
+## Testing
+
+The library includes comprehensive tests to ensure correctness and reliability.
+
+**Run standalone tests (no dependencies required):**
+```bash
+g++ -Wall -std=c++11 globals.cc simple_test.cc -o simple_test
+./simple_test
+```
+
+**Run Google Test suite (requires Bazel with Google Test):**
+```bash
+bazel test //:globals_test
+```
+
+The test suite includes 29 tests with 67 assertions covering:
+- Scalar variable assignments (int, long, double, string)
+- Vector operations (empty, single element, multiple elements)
+- Negative numbers and scientific notation
+- Invalid input detection and error handling
+- Parameter file parsing with comments
+- Command line argument processing
+- Edge cases and boundary conditions
+
+All tests validate that invalid inputs are properly rejected without corrupting the global state.
+
+## Error Handling
+
+The library now provides robust error handling:
+
+- **Type Conversion Errors**: Invalid numeric strings are detected and reported with specific error messages
+- **Format Validation**: Vector values must be enclosed in braces `{...}`
+- **Overflow Detection**: Integer values exceeding the valid range are rejected
+- **Atomic Updates**: Vectors are only updated if all elements convert successfully
+- **Unknown Variables**: Warnings are printed but execution continues
+
+Example error output:
+```
+Error converting value 'abc123': Invalid integer format
+Error setting variable [x]: Invalid integer format
+Unknown variable [x] on command line.
+```
