@@ -1,6 +1,9 @@
 # Added
 bazel-*
 program
+simple_test
+test_params.txt
+test_dump.txt
 
 # Prerequisites
 *.d
