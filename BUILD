@@ -1,15 +1,14 @@
 cc_binary(
   name = "program",
-  srcs = ["globlist.h", "main.cc", "globals.cc"],
+  srcs = ["main.cc"],
   deps = [":globals"],
   copts = ["-std=c++14"],
 )
 
 cc_library(
   name = "globals",
-  hdrs = ["globals.h"],
+  hdrs = ["globals.h", "globlist.h"],
   srcs = ["globals.cc"],
-  includes = ["globlist.h"],
   copts = ["-std=c++14"],
 )
 
