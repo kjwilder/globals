@@ -10,16 +10,76 @@ such as Google's [gflags](https://github.com/gflags/gflags) that are better
 supported and provide additional features.
 
 ## Usage
-- Add the files [globlist.h](globlist.h), [globals.h](globals.h) and
-  [globals.cc](globals.cc) to a C++ project.
-- Modify your copy  of [globlist.h](globlist.h) to include global variable
-  definitions as described in the `Examples` section below. Do not modify the
-  other two files.
+- Add the files [globals.h](globals.h) and [globals.cc](globals.cc) to a C++
+  project, either by copying them or by declaring a dependency (see
+  [Using as a dependency](#using-as-a-dependency) below).
+- Create a `globlist.h` in your project (copy [globlist_empty.h](globlist_empty.h)
+  as a starting point) and add your global variable definitions as described in
+  the `Examples` section below. Do not modify `globals.h` or `globals.cc`.
 - Include [globals.h](globals.h) in any source file that needs access to global
   variables.
 - Modify your `main` function to call `set_parameter_file_arg_globals` and
   `set_command_line_globals` as in this repo's `main.cc`.
 - Compile [globals.cc](globals.cc) with the rest of your C++ code.
+
+## Using as a dependency
+
+Because `globals.cc` must be compiled together with your project (so that it
+sees your `globlist.h`), the integration approach is slightly different from a
+typical pre-built library.
+
+### CMake (FetchContent)
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    globals
+    GIT_REPOSITORY https://github.com/<you>/globals.git
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(globals)
+
+add_executable(my_program main.cc)
+
+# Copy globlist_empty.h from the fetched source to your project as globlist.h,
+# then call globals_configure to add globals.cc and the right include paths:
+globals_configure(my_program)
+```
+
+If your `globlist.h` is not already on the target's include path, pass its
+directory explicitly:
+
+```cmake
+globals_configure(my_program GLOBLIST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+```
+
+### Bazel
+
+Add this repository to your `MODULE.bazel`:
+
+```starlark
+git_override(
+    module_name = "globals",
+    remote      = "https://github.com/<you>/globals.git",
+    commit      = "<commit>",
+)
+```
+
+Then in your `BUILD` file, list your `globlist.h` alongside your sources and
+depend on `@globals//:globals`:
+
+```python
+cc_binary(
+    name  = "my_program",
+    srcs  = ["main.cc", "globlist.h"],
+    deps  = ["@globals//:globals"],
+)
+```
+
+### Manual copy
+
+Copy `globals.h`, `globals.cc`, and `globlist_empty.h` (rename it `globlist.h`)
+into your project and compile `globals.cc` with the rest of your sources.
 
 
 ## Examples
@@ -64,8 +124,8 @@ that is ignored.  If your executable is called `myprog`, you can run it as:
 ```
 to update global variables with values provided in `params.txt`
 
-## Usign the command line to set global variables
-Supposed your [globlist.h](globlist.h) is set for `myprog` as in the previous
+## Using the command line to set global variables
+Suppose your [globlist.h](globlist.h) is set for `myprog` as in the previous
 section.  Global variables also can be specified from the command line.
 ```
 >  myprog iterations=20 labels='{a, b, c}' title="a b c"

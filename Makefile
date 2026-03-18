@@ -14,6 +14,12 @@ program : globlist.h $(HEADERS) $(SOURCES) $(GLOBALS_HEADERS) $(GLOBALS_SOURCES)
 globlist.h : globlist_example.h
 	cp $< $@
 
+test : test/globals_test
+	./test/globals_test
+
+test/globals_test : test/globals_test.cc $(GLOBALS_SOURCES) globals.h test/globlist.h
+	$(CC) -I . '-DGLOBALS_GLOBLIST_H="test/globlist.h"' test/globals_test.cc $(GLOBALS_SOURCES) -o test/globals_test
+
 clean :
-	rm -f *.o program globlist.h
+	rm -f *.o program globlist.h test/globals_test
 
