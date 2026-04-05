@@ -24,7 +24,11 @@ struct vardescriptor { void *ptr; Types type; bool is_vector;};
 std::unordered_map<string, vardescriptor> varmap = {
 #define GLOBAL(x, y, z) {#y, {&y, x##var, false}},
 #define GLOBALV(x, y, z) {#y, {&y, x##var, true}},
-#include "globlist.h"
+#ifdef GLOBALS_GLOBLIST_H
+  #include GLOBALS_GLOBLIST_H
+#elif __has_include("globlist.h")
+  #include "globlist.h"
+#endif
 #undef GLOBAL
 #undef GLOBALV
 };

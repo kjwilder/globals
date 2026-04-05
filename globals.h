@@ -15,7 +15,11 @@ using std::string;
   #define GLOBAL(x, y, z) extern x y;
   #define GLOBALV(x, y, z) extern std::vector<x> y;
 #endif
-#include "globlist.h"
+#ifdef GLOBALS_GLOBLIST_H
+  #include GLOBALS_GLOBLIST_H
+#elif __has_include("globlist.h")
+  #include "globlist.h"
+#endif
 #undef GLOBAL
 #undef GLOBALV
 
